@@ -7,7 +7,7 @@ export interface TaxonomyLevel {
 export const librarianLevels: TaxonomyLevel[] = [
   { level: 1, title: "Ingen inblandning", description: "Biblioteket ignoreras helt i undervisningen." },
   { level: 2, title: "Självbetjäningslager", description: "Biblioteket tillhandahåller material, men användarna får klara sig själva." },
-  { level: 3, title: "Individuell referenshjälp", description: "Bibliotekarien hjälper elever och lärare att hitta specifikt material vid förfrågan." },
+  { level: 3, title: "Enklare referenssamtal", description: "Bibliotekarien hjälper elever och lärare att hitta specifikt material vid förfrågan." },
   { level: 4, title: "Spontan samverkan", description: "Bibliotekarien hjälper klasser eller grupper som dyker upp utan förvarning." },
   { level: 5, title: "Informell planering", description: "Korta möten i korridorer eller personalrum där bibliotekarien ger tips på material eller tillgängliggör en lånetid i biblioteket." },
   { level: 6, title: "Referenssamtal", description: "Läraren ber i förväg bibliotekarien att plocka fram material till ett specifikt projekt." },
@@ -46,9 +46,9 @@ export const fourPillars = [
     title: "MIK & digital kompetens", 
     question: "Undervisas eleverna systematiskt i medie- och informationskunnighet?",
     criteria: [
-      "Källkritik i digitala miljöer", "Förståelse för algoritmer", "AI-läskunnighet", "Upphovsrätt & CC",
+      "Källkritik/källtillit i digitala miljöer", "Förståelse för algoritmer", "AI-läskunnighet", "Upphovsrätt & CC",
       "Digitalt skapande", "Värdera olika källor", "Integritet på nätet", "Reklam- & medieanalys",
-      "Informationssökning", "Källkritik av bild/video", "Förstå filterbubblor", "Hantera desinformation",
+      "Informationssökning", "Källkritik/källtillit av bild/video", "Förstå filterbubblor", "Hantera desinformation",
       "Digital säkerhet", "Källhänvisning", "Medieproduktion", "Kritiskt tänkande"
     ]
   },

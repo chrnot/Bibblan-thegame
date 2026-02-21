@@ -254,7 +254,7 @@ export default function App() {
       id: 'mikSessions',
       label: 'MIK-insatser',
       unit: 'st',
-      description: 'Antal schemalagda tillfällen per läsår där bibliotekarien undervisar i källkritik/sökstrategier.',
+      description: 'Antal schemalagda tillfällen under läsåret där skolbibliotekarien undervisat i enlighet med skolbiblioteksplanen.',
       why: 'Säkerställer att skolans uppdrag inom digital kompetens når alla elever likvärdigt.',
       icon: <Search className="w-5 h-5" />
     },
