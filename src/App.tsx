@@ -22,7 +22,13 @@ import {
   ShieldCheck,
   Award,
   Zap,
-  Globe
+  Globe,
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Coins,
+  Clock,
+  Search
 } from 'lucide-react';
 
 import html2canvas from 'html2canvas';
@@ -44,6 +50,15 @@ function cn(...inputs: ClassValue[]) {
 
 type Role = 'librarian' | 'teacher' | 'principal';
 type PillarId = 'mik' | 'reading' | 'culture' | 'democracy';
+
+interface KPI {
+  id: string;
+  label: string;
+  unit: string;
+  description: string;
+  why: string;
+  icon: React.ReactNode;
+}
 
 interface Achievement {
   id: string;
@@ -68,6 +83,16 @@ export default function App() {
     democracy: new Array(16).fill(false)
   });
   const [schoolName, setSchoolName] = useState('');
+  const [kpiValues, setKpiValues] = useState<Record<string, string>>({
+    coPlanned: '',
+    activeBorrowers: '',
+    mikSessions: '',
+    collectionFreshness: '',
+    staffedHours: '',
+    staffingDensity: '',
+    mediaBudget: '',
+    perceivedValue: ''
+  });
   const [celebration, setCelebration] = useState<{ title: string; subtitle: string; icon: React.ReactNode } | null>(null);
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
   const [nextQuests, setNextQuests] = useState<{ title: string; description: string }[]>([]);
@@ -205,6 +230,73 @@ export default function App() {
       description: 'Hög pedagogisk nivå hos alla roller', 
       icon: <Globe className="w-6 h-6" />,
       color: 'text-violet-400'
+    }
+  ];
+
+  const kpiDefinitions: KPI[] = [
+    {
+      id: 'coPlanned',
+      label: 'Samplanering',
+      unit: '%',
+      description: 'Procent av bibliotekariens arbetstid som utgörs av planering och undervisning med ämneslärare.',
+      why: 'Visar bibliotekets roll som integrerad del av undervisningen snarare än en isolerad utlåningscentral.',
+      icon: <Users className="w-5 h-5" />
+    },
+    {
+      id: 'activeBorrowers',
+      label: 'Aktiva låntagare',
+      unit: '%',
+      description: 'Procentandel av elever som gjort minst ett lån under de senaste 30 dagarna.',
+      why: 'Visar hur väl biblioteket lyckas nå alla elever på skolan, inte bara "bokslukarna".',
+      icon: <PieChart className="w-5 h-5" />
+    },
+    {
+      id: 'mikSessions',
+      label: 'MIK-insatser',
+      unit: 'st',
+      description: 'Antal schemalagda tillfällen per läsår där bibliotekarien undervisar i källkritik/sökstrategier.',
+      why: 'Säkerställer att skolans uppdrag inom digital kompetens når alla elever likvärdigt.',
+      icon: <Search className="w-5 h-5" />
+    },
+    {
+      id: 'collectionFreshness',
+      label: 'Beståndets aktualitet',
+      unit: '%',
+      description: 'Andel av facklitteraturen utgiven de senaste 5 åren eller utgallringsgrad.',
+      why: 'Ett inaktuellt bestånd minskar trovärdigheten. Driver kvalitet framför kvantitet.',
+      icon: <TrendingUp className="w-5 h-5" />
+    },
+    {
+      id: 'staffedHours',
+      label: 'Bemannad tillgänglighet',
+      unit: 'h/elev',
+      description: 'Antal timmar/vecka biblioteket är bemannat av fackutbildad personal, dividerat med elevantal.',
+      why: 'Synliggör elevernas faktiska tillgång till bibliotekariens kompetens under skoldagen.',
+      icon: <Clock className="w-5 h-5" />
+    },
+    {
+      id: 'staffingDensity',
+      label: 'Bemanningstäthet',
+      unit: 'elev/bibl',
+      description: 'Antal elever per bibliotekarie.',
+      why: 'Konkretiserar hur mycket tid som finns för pedagogiskt arbete vs enbart utlåning.',
+      icon: <BarChart3 className="w-5 h-5" />
+    },
+    {
+      id: 'mediaBudget',
+      label: 'Medieanslag',
+      unit: 'kr/elev',
+      description: 'Budget för inköp av medier utslaget per elev.',
+      why: 'Visar de ekonomiska förutsättningarna för att stimulera läslust med ett aktuellt utbud.',
+      icon: <Coins className="w-5 h-5" />
+    },
+    {
+      id: 'perceivedValue',
+      label: 'Upplevd samverkan',
+      unit: '1-5',
+      description: 'Resultat från enkäter/intervjuer om bibliotekets bidrag till undervisningen.',
+      why: 'Kvalitativa mått som fångar upp hur elever och lärare faktiskt upplever bibliotekets värde.',
+      icon: <Star className="w-5 h-5" />
     }
   ];
 
@@ -410,8 +502,7 @@ export default function App() {
             </motion.div>
             <div>
               <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                Biblioteksresan
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/10 text-slate-400 border border-white/5">v2.0</span>
+                Bibblan - the game
               </h1>
               <div className="flex items-center gap-2 mt-0.5">
                 <div className={cn("text-xs font-black uppercase tracking-widest", globalLevel.color)}>
@@ -440,13 +531,14 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 ml-1">Skolans namn</label>
             <input 
               type="text" 
-              placeholder="Skolans namn - fyll i högst upp" 
+              placeholder="Skriv skolans namn här..." 
               value={schoolName}
               onChange={(e) => setSchoolName(e.target.value)}
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-full md:w-64 text-white placeholder:text-slate-600 transition-all focus:bg-white/10"
+              className="bg-indigo-500/10 border-2 border-indigo-500/30 rounded-xl px-4 py-2 text-sm focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none w-full md:w-64 text-white placeholder:text-slate-600 transition-all shadow-lg shadow-indigo-500/5"
             />
           </div>
         </div>
@@ -612,6 +704,49 @@ export default function App() {
                     </motion.button>
                   );
                 })}
+              </div>
+            </section>
+
+            {/* Nyckeltal - Verksamhetsdata */}
+            <section className="bg-[#161b2b] rounded-[3rem] p-12 border border-white/5 shadow-2xl">
+              <div className="flex items-center gap-3 mb-10">
+                <div className="bg-emerald-500/10 p-2 rounded-lg text-emerald-400 border border-emerald-500/20">
+                  <BarChart3 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight text-white uppercase italic">Verksamhetsmätning</h2>
+                  <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Från passivt bokrum till aktivt Learning Commons</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {kpiDefinitions.map((kpi) => (
+                  <div key={kpi.id} className="bg-[#1c2237] p-6 rounded-3xl border border-white/5 flex flex-col gap-4 group hover:border-emerald-500/30 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="bg-emerald-500/10 p-3 rounded-xl text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                        {kpi.icon}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <input 
+                          type="text"
+                          value={kpiValues[kpi.id]}
+                          onChange={(e) => setKpiValues(prev => ({ ...prev, [kpi.id]: e.target.value }))}
+                          placeholder="0"
+                          className="w-16 bg-black/20 border border-white/10 rounded-lg px-2 py-1 text-right text-sm font-black text-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                        />
+                        <span className="text-[10px] font-black text-slate-500 uppercase">{kpi.unit}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-white mb-1">{kpi.label}</h4>
+                      <p className="text-[10px] text-slate-500 font-medium leading-tight mb-3">{kpi.description}</p>
+                      <div className="p-3 bg-black/20 rounded-xl border border-white/5">
+                        <div className="text-[8px] font-black uppercase text-emerald-500 mb-1">Varför det är viktigt:</div>
+                        <p className="text-[9px] text-slate-400 leading-relaxed italic">{kpi.why}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 
@@ -960,6 +1095,22 @@ export default function App() {
                         </div>
                       );
                     })}
+                  </div>
+
+                  {/* Nyckeltal i rapporten */}
+                  <div className="border-t border-white/5 pt-12 mt-12">
+                    <h4 className="text-center text-xs font-black uppercase tracking-[0.3em] mb-10" style={{ color: '#64748b' }}>Verksamhetsdata (Nyckeltal)</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      {kpiDefinitions.map(kpi => (
+                        <div key={kpi.id} className="p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
+                          <div className="text-[8px] font-black uppercase text-slate-500 mb-1">{kpi.label}</div>
+                          <div className="text-xl font-black text-white">
+                            {kpiValues[kpi.id] || '0'}
+                            <span className="text-[10px] ml-1 text-slate-500">{kpi.unit}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   {unlockedAchievements.length > 0 && (
