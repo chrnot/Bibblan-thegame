@@ -71,10 +71,10 @@ interface Achievement {
 export default function App() {
   const [role, setRole] = useState<Role | null>(null);
   const [activePillar, setActivePillar] = useState<PillarId | null>(null);
-  const [scores, setScores] = useState<Record<Role, number>>({
-    librarian: 0,
-    teacher: 0,
-    principal: 0
+  const [scores, setScores] = useState<Record<Role, number[]>>({
+    librarian: [],
+    teacher: [],
+    principal: []
   });
   const [practiceStates, setPracticeStates] = useState<Record<PillarId, boolean[]>>({
     mik: new Array(16).fill(false),
@@ -83,6 +83,7 @@ export default function App() {
     democracy: new Array(16).fill(false)
   });
   const [schoolName, setSchoolName] = useState('');
+  const [hoveredLevel, setHoveredLevel] = useState<TaxonomyLevel | null>(null);
   const [kpiValues, setKpiValues] = useState<Record<string, string>>({
     coPlanned: '',
     activeBorrowers: '',
@@ -128,8 +129,8 @@ export default function App() {
       newlyUnlockedThisTurn = true;
     }
 
-    // Pedagogisk Kraftsamling: All roles >= Level 5
-    if (!newUnlocked.includes('pedagogical_force') && scores.librarian >= 5 && scores.teacher >= 5 && scores.principal >= 5) {
+    // Pedagogisk Kraftsamling: All roles have at least 5 levels selected
+    if (!newUnlocked.includes('pedagogical_force') && scores.librarian.length >= 5 && scores.teacher.length >= 5 && scores.principal.length >= 5) {
       newUnlocked.push('pedagogical_force');
       newlyUnlockedThisTurn = true;
     }
@@ -156,9 +157,10 @@ export default function App() {
     const roles: Role[] = ['librarian', 'teacher', 'principal'];
     for (const r of roles) {
       const levels = getLevelsByRole(r);
-      const currentLevel = scores[r];
-      if (currentLevel < levels.length) {
-        const nextLevelData = levels.find(l => l.level === currentLevel + 1);
+      const selectedCount = scores[r].length;
+      if (selectedCount < levels.length) {
+        // Find first unselected level
+        const nextLevelData = levels.find(l => !scores[r].includes(l.level));
         if (nextLevelData) {
           quests.push({
             title: `Uppdrag: ${getRoleTitle(r)}`,
@@ -238,8 +240,8 @@ export default function App() {
       id: 'coPlanned',
       label: 'Samplanering',
       unit: '%',
-      description: 'Procent av bibliotekariens arbetstid som utgörs av planering och undervisning med ämneslärare.',
-      why: 'Visar bibliotekets roll som integrerad del av undervisningen snarare än en isolerad utlåningscentral.',
+      description: 'Procent av skolbibliotekariens arbetstid som utgörs av planering och undervisning med ämneslärare.',
+      why: 'Visar skolbibliotekets roll som integrerad del av undervisningen snarare än en isolerad utlåningscentral.',
       icon: <Users className="w-5 h-5" />
     },
     {
@@ -247,7 +249,7 @@ export default function App() {
       label: 'Aktiva låntagare',
       unit: '%',
       description: 'Procentandel av elever som gjort minst ett lån under de senaste 30 dagarna.',
-      why: 'Visar hur väl biblioteket lyckas nå alla elever på skolan, inte bara "bokslukarna".',
+      why: 'Visar hur väl skolbiblioteket lyckas nå alla elever på skolan, inte bara "bokslukarna".',
       icon: <PieChart className="w-5 h-5" />
     },
     {
@@ -270,15 +272,15 @@ export default function App() {
       id: 'staffedHours',
       label: 'Bemannad tillgänglighet',
       unit: 'h/elev',
-      description: 'Antal timmar/vecka biblioteket är bemannat av fackutbildad personal, dividerat med elevantal.',
-      why: 'Synliggör elevernas faktiska tillgång till bibliotekariens kompetens under skoldagen.',
+      description: 'Antal timmar/vecka skolbiblioteket är bemannat av fackutbildad personal, dividerat med elevantal.',
+      why: 'Synliggör elevernas faktiska tillgång till skolbibliotekariens kompetens under skoldagen.',
       icon: <Clock className="w-5 h-5" />
     },
     {
       id: 'staffingDensity',
       label: 'Bemanningstäthet',
       unit: 'elev/bibl',
-      description: 'Antal elever per bibliotekarie.',
+      description: 'Antal elever per skolbibliotekarie.',
       why: 'Konkretiserar hur mycket tid som finns för pedagogiskt arbete vs enbart utlåning.',
       icon: <BarChart3 className="w-5 h-5" />
     },
@@ -294,23 +296,29 @@ export default function App() {
       id: 'perceivedValue',
       label: 'Upplevd samverkan',
       unit: '1-5',
-      description: 'Resultat från enkäter/intervjuer om bibliotekets bidrag till undervisningen.',
-      why: 'Kvalitativa mått som fångar upp hur elever och lärare faktiskt upplever bibliotekets värde.',
+      description: 'Resultat från enkäter/intervjuer om skolbibliotekets bidrag till undervisningen.',
+      why: 'Kvalitativa mått som fångar upp hur elever och lärare faktiskt upplever skolbibliotekets värde.',
       icon: <Star className="w-5 h-5" />
     }
   ];
 
   const calculateXP = () => {
-    const roleXP = (scores.librarian + scores.teacher + scores.principal) * 100;
+    const roleXP = (scores.librarian.length + scores.teacher.length + scores.principal.length) * 100;
     const practiceXP = Object.values(practiceStates).flat().filter(Boolean).length * 25;
     return roleXP + practiceXP;
   };
 
+  const getMaxLevel = (r: Role) => {
+    if (r === 'librarian') return 11;
+    if (r === 'principal') return 9;
+    return 8;
+  };
+
   const currentXP = calculateXP();
-  const maxXP = (11 + 8 + 8) * 100 + (4 * 16 * 25);
+  const maxXP = (11 + 8 + 9) * 100 + (4 * 16 * 25);
 
   const getGlobalLevel = (xp: number) => {
-    if (xp >= 3500) return { level: 5, title: "Biblioteksmästare", color: "text-amber-400", bg: "bg-amber-400/20", border: "border-amber-400/50" };
+    if (xp >= 3500) return { level: 5, title: "Skolbiblioteksmästare", color: "text-amber-400", bg: "bg-amber-400/20", border: "border-amber-400/50" };
     if (xp >= 2000) return { level: 4, title: "Kunskapsarkitekt", color: "text-emerald-400", bg: "bg-emerald-400/20", border: "border-emerald-400/50" };
     if (xp >= 1000) return { level: 3, title: "Pedagogisk Navigatör", color: "text-indigo-400", bg: "bg-indigo-400/20", border: "border-indigo-400/50" };
     if (xp >= 500) return { level: 2, title: "Läsambassadör", color: "text-violet-400", bg: "bg-violet-400/20", border: "border-violet-400/50" };
@@ -341,16 +349,26 @@ export default function App() {
   };
 
   const handleLevelClick = (role: Role, level: number) => {
-    if (level > scores[role]) {
-      const roleTitle = getRoleTitle(role);
-      setCelebration({
-        title: "Nivå Uppnådd!",
-        subtitle: `${roleTitle} har nått nivå ${level}`,
-        icon: <Star className="w-12 h-12 text-amber-400" />
-      });
-      triggerConfetti();
-    }
-    setScores(prev => ({ ...prev, [role]: level }));
+    setScores(prev => {
+      const currentLevels = prev[role];
+      const isSelected = currentLevels.includes(level);
+      let newLevels;
+      
+      if (isSelected) {
+        newLevels = currentLevels.filter(l => l !== level);
+      } else {
+        newLevels = [...currentLevels, level];
+        const roleTitle = getRoleTitle(role);
+        setCelebration({
+          title: "Nivå Uppnådd!",
+          subtitle: `${roleTitle} har nått nivå ${level}`,
+          icon: <Star className="w-12 h-12 text-amber-400" />
+        });
+        triggerConfetti();
+      }
+      
+      return { ...prev, [role]: newLevels };
+    });
   };
 
   const togglePracticeItem = (pillarId: PillarId, index: number) => {
@@ -416,7 +434,7 @@ export default function App() {
       });
       
       pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
-      pdf.save(`biblioteksresan-${schoolName || 'skola'}.pdf`);
+      pdf.save(`skolbiblioteksresan-${schoolName || 'skola'}.pdf`);
     }
   };
 
@@ -430,9 +448,9 @@ export default function App() {
 
   const getRoleTitle = (r: Role) => {
     switch (r) {
-      case 'librarian': return 'Bibliotekariens roll';
+      case 'librarian': return 'Skolbibliotekariens roll';
       case 'teacher': return 'Lärarens samverkan';
-      case 'principal': return 'Rektorns ledarskap';
+      case 'principal': return 'Rektors ansvar – hur långt har ledningen kommit?';
     }
   };
 
@@ -442,6 +460,160 @@ export default function App() {
       case 'teacher': return <Users className="w-6 h-6" />;
       case 'principal': return <GraduationCap className="w-6 h-6" />;
     }
+  };
+
+  const constellationCoords = [
+    { x: 15, y: 80 }, { x: 35, y: 75 }, { x: 25, y: 55 }, { x: 45, y: 50 },
+    { x: 65, y: 60 }, { x: 85, y: 45 }, { x: 75, y: 25 }, { x: 55, y: 15 },
+    { x: 35, y: 25 }, { x: 15, y: 40 }, { x: 10, y: 60 }
+  ];
+
+  const ConstellationMap = ({ levels, selectedLevels, onLevelClick, role }: { 
+    levels: TaxonomyLevel[], 
+    selectedLevels: number[], 
+    onLevelClick: (role: Role, level: number) => void,
+    role: Role
+  }) => {
+    return (
+      <div className="relative w-full aspect-square md:aspect-[16/9] bg-[#0a0c14] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-inner">
+        {/* Stars background */}
+        <div className="absolute inset-0 opacity-20">
+          {[...Array(50)].map((_, i) => (
+            <div 
+              key={i}
+              className="absolute w-0.5 h-0.5 bg-white rounded-full"
+              style={{ 
+                top: `${Math.random() * 100}%`, 
+                left: `${Math.random() * 100}%`,
+                opacity: Math.random()
+              }}
+            />
+          ))}
+        </div>
+
+        <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="absolute inset-0 w-full h-full p-12">
+          {/* Connection Lines */}
+          {levels.slice(0, -1).map((_, i) => {
+            const start = constellationCoords[i];
+            const end = constellationCoords[i + 1];
+            // Line is lit if both adjacent levels are selected
+            const isLit = selectedLevels.includes(levels[i].level) && selectedLevels.includes(levels[i+1].level);
+            
+            return (
+              <motion.line
+                key={`line-${i}`}
+                x1={start.x}
+                y1={start.y}
+                x2={end.x}
+                y2={end.y}
+                stroke={isLit ? "#6366f1" : "rgba(255,255,255,0.05)"}
+                strokeWidth={isLit ? "0.8" : "0.3"}
+                initial={false}
+                animate={{ 
+                  stroke: isLit ? "#6366f1" : "rgba(255,255,255,0.05)",
+                  strokeWidth: isLit ? 0.8 : 0.3,
+                  opacity: isLit ? 1 : 0.5
+                }}
+                className={isLit ? "drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" : ""}
+              />
+            );
+          })}
+
+          {/* Stars/Nodes */}
+          {levels.map((item, i) => {
+            const coord = constellationCoords[i];
+            const isAchieved = selectedLevels.includes(item.level);
+            const isSelected = selectedLevels.includes(item.level);
+            
+            return (
+              <g 
+                key={`star-${i}`} 
+                className="cursor-pointer group"
+                onClick={() => onLevelClick(role, item.level)}
+                onMouseEnter={() => setHoveredLevel(item)}
+                onMouseLeave={() => setHoveredLevel(null)}
+              >
+                {/* Glow effect for achieved stars */}
+                {isAchieved && (
+                  <motion.circle
+                    cx={coord.x}
+                    cy={coord.y}
+                    r="4"
+                    fill="#6366f1"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 0.2, scale: 1 }}
+                    className="blur-md"
+                  />
+                )}
+                
+                {/* Star core */}
+                <motion.circle
+                  cx={coord.x}
+                  cy={coord.y}
+                  r={isSelected ? "2.5" : isAchieved ? "1.8" : "1.2"}
+                  fill={isAchieved ? "#6366f1" : "rgba(255,255,255,0.2)"}
+                  stroke={isSelected ? "white" : "transparent"}
+                  strokeWidth="0.5"
+                  whileHover={{ scale: 1.5 }}
+                  animate={{ 
+                    r: isSelected ? 2.5 : isAchieved ? 1.8 : 1.2,
+                    fill: isAchieved ? "#6366f1" : "rgba(255,255,255,0.2)"
+                  }}
+                  className="transition-colors duration-300"
+                />
+                
+                {/* Level number label */}
+                <text
+                  x={coord.x}
+                  y={coord.y + 6}
+                  textAnchor="middle"
+                  className={cn(
+                    "text-[3px] font-black uppercase tracking-tighter fill-slate-500 pointer-events-none transition-colors",
+                    isAchieved && "fill-indigo-400"
+                  )}
+                >
+                  Nivå {item.level}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* Hover Info Overlay */}
+        <AnimatePresence>
+          {hoveredLevel && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-[#1c2237]/90 backdrop-blur-md border border-white/10 p-6 rounded-3xl shadow-2xl pointer-events-none"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-indigo-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm">
+                  {hoveredLevel.level}
+                </div>
+                <h4 className="font-black text-white uppercase italic tracking-tight">{hoveredLevel.title}</h4>
+              </div>
+              <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                {hoveredLevel.description}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Legend */}
+        <div className="absolute top-8 left-8 flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-indigo-600 shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Uppnått</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-white/20" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Kommande</span>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -556,7 +728,7 @@ export default function App() {
               <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
                 <div className="flex-1 text-center md:text-left">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-4">
-                    <Sparkles className="w-3 h-3" /> Biblioteksträdgården
+                    <Sparkles className="w-3 h-3" /> Skolbiblioteksträdgården
                   </div>
                   <h2 className="text-4xl font-black text-white mb-4 tracking-tight uppercase italic">
                     Se er verksamhet <span className="text-emerald-400">blomstra</span>
@@ -662,7 +834,7 @@ export default function App() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {(['librarian', 'teacher', 'principal'] as Role[]).map((r) => {
-                  const progress = (scores[r] / (r === 'librarian' ? 11 : 8)) * 100;
+                  const progress = (scores[r].length / getMaxLevel(r)) * 100;
                   return (
                     <motion.button
                       key={r}
@@ -686,7 +858,7 @@ export default function App() {
 
                       <div className="w-full space-y-2">
                         <div className="flex justify-between text-[10px] font-black uppercase text-slate-500">
-                          <span>Nivå {scores[r]}</span>
+                          <span>{scores[r].length} noder tända</span>
                           <span>{Math.round(progress)}%</span>
                         </div>
                         <div className="h-2 bg-black/40 rounded-full overflow-hidden p-0.5">
@@ -848,10 +1020,19 @@ export default function App() {
               </div>
 
               <div className="p-6 md:p-10">
-                <div className="space-y-4">
+                <div className="mb-10">
+                  <ConstellationMap 
+                    levels={getLevelsByRole(role)} 
+                    selectedLevels={scores[role]} 
+                    onLevelClick={handleLevelClick}
+                    role={role}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {getLevelsByRole(role).map((item) => {
-                    const isAchieved = scores[role] >= item.level;
-                    const isSelected = scores[role] === item.level;
+                    const isAchieved = scores[role].includes(item.level);
+                    const isSelected = scores[role].includes(item.level);
                     
                     return (
                       <motion.div
@@ -860,46 +1041,28 @@ export default function App() {
                         animate={{
                           backgroundColor: isAchieved ? '#232a45' : '#161b2b',
                           borderColor: isSelected ? '#6366f1' : isAchieved ? '#312e81' : '#1e293b',
-                          scale: isSelected ? 1.01 : 1
-                        }}
-                        transition={{ 
-                          delay: isAchieved ? item.level * 0.02 : 0,
-                          duration: 0.2
                         }}
                         onClick={() => handleLevelClick(role, item.level)}
                         className={cn(
-                          "p-6 rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-6 group relative overflow-hidden",
-                          isSelected ? "shadow-[0_0_30px_rgba(99,102,241,0.2)]" : "hover:border-white/10"
+                          "p-5 rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-4 group relative overflow-hidden",
+                          isSelected ? "shadow-[0_0_20px_rgba(99,102,241,0.1)]" : "hover:border-white/10"
                         )}
                       >
-                        {isAchieved && !isSelected && (
-                          <div className="absolute inset-0 bg-indigo-500/5 pointer-events-none" />
-                        )}
-                        
                         <div className={cn(
-                          "w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl shrink-0 transition-all duration-500",
+                          "w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 transition-all duration-500",
                           isAchieved ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/30" : "bg-white/5 text-slate-600 group-hover:bg-white/10"
                         )}>
                           {item.level}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <h4 className={cn(
-                            "font-black text-xl mb-1.5 transition-colors duration-300",
+                            "font-black text-sm mb-1 transition-colors duration-300 truncate",
                             isAchieved ? "text-white" : "text-slate-500"
                           )}>
                             {item.title}
                           </h4>
-                          <p className="text-sm text-slate-400 leading-relaxed font-medium">{item.description}</p>
+                          <p className="text-[10px] text-slate-400 leading-tight font-medium line-clamp-2">{item.description}</p>
                         </div>
-                        {isAchieved && (
-                          <motion.div
-                            initial={{ scale: 0, rotate: -45 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            className="bg-indigo-500/20 p-2 rounded-full border border-indigo-500/30"
-                          >
-                            <CheckCircle2 className="w-6 h-6 text-indigo-400 shrink-0" />
-                          </motion.div>
-                        )}
                       </motion.div>
                     );
                   })}
@@ -1042,8 +1205,8 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                   {(['librarian', 'teacher', 'principal'] as Role[]).map((r) => {
-                    const maxLevel = r === 'librarian' ? 11 : 8;
-                    const isMax = scores[r] === maxLevel;
+                    const maxLevel = getMaxLevel(r);
+                    const isMax = scores[r].length === maxLevel;
                     return (
                       <div key={r} className="p-8 rounded-[2.5rem] border text-center relative overflow-hidden" style={{ backgroundColor: '#161b2b', borderColor: '#1e293b' }}>
                         {isMax && (
@@ -1053,13 +1216,13 @@ export default function App() {
                         )}
                         <div className="mb-4 flex justify-center" style={{ color: '#6366f1' }}>{getRoleIcon(r)}</div>
                         <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-3" style={{ color: '#94a3b8' }}>{getRoleTitle(r)}</h4>
-                        <div className="text-5xl font-black mb-6" style={{ color: '#ffffff' }}>{scores[r]}<span className="text-xl text-slate-600 ml-1">/{maxLevel}</span></div>
+                        <div className="text-5xl font-black mb-6" style={{ color: '#ffffff' }}>{scores[r].length}<span className="text-xl text-slate-600 ml-1">/{maxLevel}</span></div>
                         <div className="h-3 bg-black/40 rounded-full overflow-hidden p-1">
                           <motion.div 
                             initial={{ width: 0 }}
                             animate={{ 
-                              width: `${(scores[r] / maxLevel) * 100}%`,
-                              backgroundColor: getProgressColor((scores[r] / maxLevel) * 100)
+                              width: `${(scores[r].length / maxLevel) * 100}%`,
+                              backgroundColor: getProgressColor((scores[r].length / maxLevel) * 100)
                             }}
                             className="h-full rounded-full"
                           />
