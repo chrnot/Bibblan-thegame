@@ -27,6 +27,9 @@ export const teacherLevels: TaxonomyLevel[] = [
   { level: 6, title: "Skolbiblioteket som innehåll", description: "Läraren planerar tillsammans med skolbibliotekarien för att integrera medier i kursmomentet." },
   { level: 7, title: "Partnerskap", description: "Lärare och skolbibliotekarie samarbetar som jämlika partners genom hela lärprocessen." },
   { level: 8, title: "Läroplansutveckling", description: "Läraren samråder med skolbibliotekarien vid långsiktig utveckling av ämnen och kursplaner." },
+  { level: 9, title: "Pedagogisk innovation", description: "Läraren driver pedagogisk utveckling där skolbiblioteket är en central motor." },
+  { level: 10, title: "Systemiskt partnerskap", description: "Samarbetet är helt integrerat i skolans alla processer och strukturer." },
+  { level: 11, title: "Skolutvecklingsledare", description: "Läraren och skolbibliotekarien leder tillsammans skolans digitala och språkliga utveckling." },
 ];
 
 export const principalLevels: TaxonomyLevel[] = [
@@ -39,6 +42,8 @@ export const principalLevels: TaxonomyLevel[] = [
   { level: 7, title: "Pedagogiskt ledarskap", description: "Bibliotekets arbete kopplas till resultat." },
   { level: 8, title: "SKA‑arbete", description: "Rektor följer upp och utvärderar." },
   { level: 9, title: "Fortsatt kompetensutveckling", description: "Rektor utvecklar sin kunskap kontinuerligt." },
+  { level: 10, title: "Strategisk visionsledare", description: "Rektorn sätter skolbiblioteket i centrum för skolans vision och framtid." },
+  { level: 11, title: "Systemisk transformator", description: "Rektorn har skapat en skolkultur där skolbiblioteket är en självklar del av allas framgång." },
 ];
 
 export const fourPillars = [
@@ -47,10 +52,22 @@ export const fourPillars = [
     title: "MIK & digital kompetens", 
     question: "Undervisas eleverna systematiskt i medie- och informationskunnighet?",
     criteria: [
-      "Källkritik/källtillit i digitala miljöer", "Förståelse för algoritmer", "AI-läskunnighet", "Upphovsrätt & CC",
-      "Digitalt skapande", "Värdera olika källor", "Integritet på nätet", "Reklam- & medieanalys",
-      "Informationssökning", "Källkritik/källtillit av bild/video", "Förstå filterbubblor", "Hantera desinformation",
-      "Digital säkerhet", "Källhänvisning", "Medieproduktion", "Kritiskt tänkande"
+      "Bibliotekskunskap: söka i katalog, ämnesord & hyllsystem",
+      "Källkritik & källtillit i olika medieformat",
+      "Nätetik & integritet (självbetjäning, säker delning)",
+      "Informationssökning i stadens databaser",
+      "Referenshantering & källhänvisning (t.ex. inför gymnasiearbete)",
+      "Upphovsrätt & Creative Commons",
+      "Faktagranskning av nyheter & källor",
+      "AI‑verktyg: möjligheter, begränsningar & källkontroll",
+      "Tolka och kritiskt granska diagram & statistik",
+      "Digital tillgänglighet: talsyntes, e‑böcker & anpassningar",
+      "Säkra lösenord och datasäkerhet i skolarbeten",
+      "Planera & genomföra MIK‑pass tillsammans med lärare",
+      "Jämföra olika sökstrategier (fria webben vs. databaser)",
+      "Bedöma lärresurser och verktyg mot kriterier",
+      "Etik vid publicering av elevarbeten",
+      "Kritisk bild- och videogranskning"
     ]
   },
   { 
@@ -58,10 +75,22 @@ export const fourPillars = [
     title: "Läsning & språkutveckling", 
     question: "Stödjer skolbiblioteket elevernas språkliga och litterära utveckling?",
     criteria: [
-      "Läsfrämjande insatser", "Ordförrådsutveckling", "Boksamtal i grupp", "Skrivande i genrer",
-      "Berättande (storytelling)", "Modersmålsstöd", "Litteratur på olika språk", "Högläsning",
-      "Lässtrategier", "Multimodalitet (bild/text)", "Genremedvetenhet", "Språklig medvetenhet",
-      "Lustfyllt läsande", "Skönlitteratur i ämnen", "Poesi och dramatik", "Digitalt berättande"
+      "Bokpresentationer & individuell litteraturvägledning",
+      "Högläsning & boksamtal i undervisningen",
+      "Läsprojekt & läsfrämjande aktiviteter (även lov/sommar)",
+      "Läslogg, reflektion & måluppföljning",
+      "Genrekunskap: berättande & faktatexter",
+      "Ordförråd & begreppsarbete i ämnesstudier",
+      "Strategier för fackläsning i NO/SO",
+      "SVA‑stöd & flerspråkiga resurser",
+      "Läsning på modersmål (Mångspråksbiblioteket)",
+      "Tillgänglig läsning: talböcker, lättläst & punktskrift",
+      "Samarbeta med Cirkulationsbiblioteket (klassuppsättningar)",
+      "Skriva recension/essä med citatstöd",
+      "Kamratrespons & samtalsmodeller (t.ex. två stjärnor och en önskan)",
+      "Läsutmaningar & biblioteksaktiviteter efter skoltid",
+      "Läsning på originalspråk/översättning",
+      "Uppföljning i SKA av läsfrämjande insatser"
     ]
   },
   { 
@@ -69,10 +98,22 @@ export const fourPillars = [
     title: "Litteratur & kultur", 
     question: "Erbjuder skolbiblioteket ett brett utbud av kultur och litteratur?",
     criteria: [
-      "Bokprat & bokattacker", "Aktuellt bokbestånd", "Författarbesök", "Kulturella events",
-      "Skyltning & exponering", "Samarbete med kulturskola", "Film & media", "Konstutställningar",
-      "Elevinflytande vid inköp", "Mångfald i utbudet", "Litteraturkanon-diskussion", "Kulturarv & samtid",
-      "Skapande verksamhet", "Teater & drama", "Musik & ljud", "Globala perspektiv"
+      "Samtida ungdomslitteratur & klassiker",
+      "Författarporträtt & litterära epoker",
+      "Poesi, novell & dramatik – läsa & skapa",
+      "Jämföra bok och filmatisering",
+      "Litteratur & kulturarv (inkl. nationella minoriteter)",
+      "Temaarbete: ett tema i flera verk/medier",
+      "Kreativt skrivande i en författares stil",
+      "Tolkning med citat och textbevis",
+      "Elevutställning/skyltning som synliggör mångfald",
+      "Litteratur på flera språk & översättning",
+      "Samarbete med folkbibliotek/kulturaktörer",
+      "Recensionscirkel eller podd",
+      "Affisch/utställning om bibliotekets medieplan (inköp & gallring)",
+      "Lyfta fram tillgängliga format & läsfrämjande miljö",
+      "Elevkurator för kultur: planera en läs/skriv‑händelse",
+      "Biblioteksvandring med fokus på trygg & ändamålsenlig miljö"
     ]
   },
   { 
@@ -80,10 +121,22 @@ export const fourPillars = [
     title: "Demokrati & värdegrund", 
     question: "Fungerar skolbiblioteket som en demokratisk arena för alla elever?",
     criteria: [
-      "Elevinflytande i bibblan", "Samtal om svåra frågor", "Yttrandefrihet & censur", "Inkludering & mångfald",
-      "Delaktighet i inköp", "Skolbiblioteket som mötesplats", "Kritiskt granskande av makt", "Mänskliga rättigheter",
-      "Demokratiska processer", "Trygg miljö för alla", "Representation i hyllan", "Medborgarfostran",
-      "Etiska diskussioner", "Tillgång till fri info", "Globala målen i bibblan", "Elevrådssamarbete"
+      "Fri åsiktsbildning & saklig debatt med källstöd",
+      "Publicistiska principer & pressetik",
+      "Yttrandefrihet & ansvar på nätet",
+      "Källkritik i samhällsfrågor/val",
+      "Biblioteksråd & elevinflytande i verksamheten",
+      "Representation & likvärdig tillgång (mångfald i hyllorna)",
+      "Förebygga och hantera nähat",
+      "Propaganda & retoriska grepp i media",
+      "Medborgarpåverkan: insändare/förslag",
+      "Granska bild och rörlig bild",
+      "Barnkonventionen i skolan – koppling till bibliotek",
+      "Etiska dilemman och värderingsövningar",
+      "Tillgänglig miljö: fysisk & kognitiv tillgänglighet",
+      "Fokusinsatser för prioriterade grupper",
+      "Kritiskt granska diagram i debatt",
+      "SKA‑uppföljning av elevers delaktighet"
     ]
   },
 ];

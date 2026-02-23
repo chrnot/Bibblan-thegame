@@ -18,7 +18,6 @@ import {
   Info,
   Star,
   Sparkles,
-  X,
   ShieldCheck,
   Award,
   Zap,
@@ -35,7 +34,6 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import confetti from 'canvas-confetti';
 import { 
   librarianLevels, 
   teacherLevels, 
@@ -94,7 +92,6 @@ export default function App() {
     mediaBudget: '',
     perceivedValue: ''
   });
-  const [celebration, setCelebration] = useState<{ title: string; subtitle: string; icon: React.ReactNode } | null>(null);
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
   const [nextQuests, setNextQuests] = useState<{ title: string; description: string }[]>([]);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -136,16 +133,6 @@ export default function App() {
     }
 
     if (newlyUnlockedThisTurn) {
-      const latestId = newUnlocked[newUnlocked.length - 1];
-      const ach = achievements.find(a => a.id === latestId);
-      if (ach) {
-        setCelebration({
-          title: "Ny Titel Tilldelad!",
-          subtitle: ach.title,
-          icon: ach.icon
-        });
-        triggerConfetti();
-      }
       setUnlockedAchievements(newUnlocked);
     }
   }, [scores, practiceStates]);
@@ -195,13 +182,6 @@ export default function App() {
     });
 
     setNextQuests(quests.slice(0, 3)); // Max 3 quests
-    
-    setCelebration({
-      title: "Nya Uppdrag!",
-      subtitle: "Dina nästa steg har genererats",
-      icon: <Sparkles className="w-12 h-12 text-indigo-400" />
-    });
-    triggerConfetti();
   };
 
   const achievements: Achievement[] = [
@@ -309,13 +289,11 @@ export default function App() {
   };
 
   const getMaxLevel = (r: Role) => {
-    if (r === 'librarian') return 11;
-    if (r === 'principal') return 9;
-    return 8;
+    return 11;
   };
 
   const currentXP = calculateXP();
-  const maxXP = (11 + 8 + 9) * 100 + (4 * 16 * 25);
+  const maxXP = (11 + 11 + 11) * 100 + (4 * 16 * 25);
 
   const getGlobalLevel = (xp: number) => {
     if (xp >= 3500) return { level: 5, title: "Skolbiblioteksmästare", color: "text-amber-400", bg: "bg-amber-400/20", border: "border-amber-400/50" };
@@ -328,26 +306,6 @@ export default function App() {
   const globalLevel = getGlobalLevel(currentXP);
   const totalProgress = (currentXP / maxXP) * 100;
 
-  const triggerConfetti = () => {
-    const duration = 3 * 1000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
-
-    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-    const interval: any = setInterval(function() {
-      const timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
-      const particleCount = 50 * (timeLeft / duration);
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-    }, 250);
-  };
-
   const handleLevelClick = (role: Role, level: number) => {
     setScores(prev => {
       const currentLevels = prev[role];
@@ -358,13 +316,6 @@ export default function App() {
         newLevels = currentLevels.filter(l => l !== level);
       } else {
         newLevels = [...currentLevels, level];
-        const roleTitle = getRoleTitle(role);
-        setCelebration({
-          title: "Nivå Uppnådd!",
-          subtitle: `${roleTitle} har nått nivå ${level}`,
-          icon: <Star className="w-12 h-12 text-amber-400" />
-        });
-        triggerConfetti();
       }
       
       return { ...prev, [role]: newLevels };
@@ -376,29 +327,6 @@ export default function App() {
       const newState = [...prev[pillarId]];
       const wasChecked = newState[index];
       newState[index] = !wasChecked;
-      
-      const newCount = newState.filter(Boolean).length;
-      const oldCount = prev[pillarId].filter(Boolean).length;
-
-      if (newCount > oldCount) {
-        const milestones = [4, 8, 12, 16];
-        if (milestones.includes(newCount)) {
-          const pillar = fourPillars.find(p => p.id === pillarId);
-          const milestoneTitles: Record<number, string> = {
-            4: "Bra start!",
-            8: "Halvvägs!",
-            12: "Nästan där!",
-            16: "Mästarnivå!"
-          };
-          
-          setCelebration({
-            title: milestoneTitles[newCount],
-            subtitle: `${pillar?.title}: ${newCount}/16 kriterier uppfyllda`,
-            icon: <Sparkles className="w-12 h-12 text-emerald-400" />
-          });
-          triggerConfetti();
-        }
-      }
       
       return { ...prev, [pillarId]: newState };
     });
@@ -462,11 +390,29 @@ export default function App() {
     }
   };
 
-  const constellationCoords = [
-    { x: 15, y: 80 }, { x: 35, y: 75 }, { x: 25, y: 55 }, { x: 45, y: 50 },
-    { x: 65, y: 60 }, { x: 85, y: 45 }, { x: 75, y: 25 }, { x: 55, y: 15 },
-    { x: 35, y: 25 }, { x: 15, y: 40 }, { x: 10, y: 60 }
-  ];
+  const constellations: Record<Role, { coords: { x: number, y: number }[], edges: [number, number][] }> = {
+    librarian: {
+      coords: [
+        { x: 50, y: 85 }, { x: 40, y: 75 }, { x: 30, y: 65 }, { x: 20, y: 55 }, { x: 15, y: 40 }, { x: 25, y: 25 },
+        { x: 60, y: 75 }, { x: 70, y: 65 }, { x: 80, y: 55 }, { x: 85, y: 40 }, { x: 75, y: 25 }
+      ],
+      edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [0, 6], [6, 7], [7, 8], [8, 9], [9, 10]]
+    },
+    teacher: {
+      coords: [
+        { x: 40, y: 90 }, { x: 50, y: 90 }, { x: 60, y: 90 }, { x: 50, y: 75 }, { x: 50, y: 60 }, { x: 50, y: 45 },
+        { x: 50, y: 30 }, { x: 30, y: 70 }, { x: 70, y: 70 }, { x: 45, y: 20 }, { x: 55, y: 20 }
+      ],
+      edges: [[0, 3], [1, 3], [2, 3], [3, 4], [4, 5], [5, 6], [6, 9], [6, 10], [4, 7], [4, 8]]
+    },
+    principal: {
+      coords: [
+        { x: 45, y: 90 }, { x: 50, y: 90 }, { x: 55, y: 90 }, { x: 30, y: 65 }, { x: 20, y: 45 }, { x: 35, y: 25 },
+        { x: 50, y: 20 }, { x: 65, y: 25 }, { x: 80, y: 45 }, { x: 70, y: 65 }, { x: 50, y: 50 }
+      ],
+      edges: [[0, 1], [1, 2], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 3], [1, 10]]
+    }
+  };
 
   const ConstellationMap = ({ levels, selectedLevels, onLevelClick, role }: { 
     levels: TaxonomyLevel[], 
@@ -474,8 +420,28 @@ export default function App() {
     onLevelClick: (role: Role, level: number) => void,
     role: Role
   }) => {
+    const config = constellations[role];
+    const isBulbComplete = role === 'principal' && selectedLevels.length === 11;
+
     return (
-      <div className="relative w-full aspect-square md:aspect-[16/9] bg-[#0a0c14] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-inner">
+      <div className={cn(
+        "relative w-full aspect-square md:aspect-[16/9] bg-[#0a0c14] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-inner transition-all duration-1000",
+        isBulbComplete && "shadow-[inset_0_0_100px_rgba(251,191,36,0.2)]"
+      )}>
+        {/* Bulb Glow Effect */}
+        <AnimatePresence>
+          {isBulbComplete && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              style={{
+                background: 'radial-gradient(circle at center, rgba(251, 191, 36, 0.15) 0%, transparent 70%)'
+              }}
+              className="absolute inset-0 pointer-events-none"
+            />
+          )}
+        </AnimatePresence>
+
         {/* Stars background */}
         <div className="absolute inset-0 opacity-20">
           {[...Array(50)].map((_, i) => (
@@ -493,11 +459,12 @@ export default function App() {
 
         <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="absolute inset-0 w-full h-full p-12">
           {/* Connection Lines */}
-          {levels.slice(0, -1).map((_, i) => {
-            const start = constellationCoords[i];
-            const end = constellationCoords[i + 1];
+          {config.edges.map(([startIdx, endIdx], i) => {
+            const start = config.coords[startIdx];
+            const end = config.coords[endIdx];
             // Line is lit if both adjacent levels are selected
-            const isLit = selectedLevels.includes(levels[i].level) && selectedLevels.includes(levels[i+1].level);
+            // Levels are 1-indexed, so node index i corresponds to level i+1
+            const isLit = selectedLevels.includes(startIdx + 1) && selectedLevels.includes(endIdx + 1);
             
             return (
               <motion.line
@@ -506,11 +473,11 @@ export default function App() {
                 y1={start.y}
                 x2={end.x}
                 y2={end.y}
-                stroke={isLit ? "#6366f1" : "rgba(255,255,255,0.05)"}
+                stroke={isLit ? (role === 'principal' ? "#fbbf24" : "#6366f1") : "rgba(255,255,255,0.05)"}
                 strokeWidth={isLit ? "0.8" : "0.3"}
                 initial={false}
                 animate={{ 
-                  stroke: isLit ? "#6366f1" : "rgba(255,255,255,0.05)",
+                  stroke: isLit ? (role === 'principal' ? "#fbbf24" : "#6366f1") : "rgba(255,255,255,0.05)",
                   strokeWidth: isLit ? 0.8 : 0.3,
                   opacity: isLit ? 1 : 0.5
                 }}
@@ -521,9 +488,10 @@ export default function App() {
 
           {/* Stars/Nodes */}
           {levels.map((item, i) => {
-            const coord = constellationCoords[i];
+            const coord = config.coords[i];
             const isAchieved = selectedLevels.includes(item.level);
             const isSelected = selectedLevels.includes(item.level);
+            const themeColor = role === 'principal' ? "#fbbf24" : "#6366f1";
             
             return (
               <g 
@@ -539,7 +507,7 @@ export default function App() {
                     cx={coord.x}
                     cy={coord.y}
                     r="4"
-                    fill="#6366f1"
+                    fill={themeColor}
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 0.2, scale: 1 }}
                     className="blur-md"
@@ -551,13 +519,13 @@ export default function App() {
                   cx={coord.x}
                   cy={coord.y}
                   r={isSelected ? "2.5" : isAchieved ? "1.8" : "1.2"}
-                  fill={isAchieved ? "#6366f1" : "rgba(255,255,255,0.2)"}
+                  fill={isAchieved ? themeColor : "rgba(255,255,255,0.2)"}
                   stroke={isSelected ? "white" : "transparent"}
                   strokeWidth="0.5"
                   whileHover={{ scale: 1.5 }}
                   animate={{ 
                     r: isSelected ? 2.5 : isAchieved ? 1.8 : 1.2,
-                    fill: isAchieved ? "#6366f1" : "rgba(255,255,255,0.2)"
+                    fill: isAchieved ? themeColor : "rgba(255,255,255,0.2)"
                   }}
                   className="transition-colors duration-300"
                 />
@@ -569,7 +537,7 @@ export default function App() {
                   textAnchor="middle"
                   className={cn(
                     "text-[3px] font-black uppercase tracking-tighter fill-slate-500 pointer-events-none transition-colors",
-                    isAchieved && "fill-indigo-400"
+                    isAchieved && (role === 'principal' ? "fill-amber-400" : "fill-indigo-400")
                   )}
                 >
                   Nivå {item.level}
@@ -618,47 +586,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0f111a] text-slate-100 font-sans pb-20 selection:bg-indigo-500/30">
-      {/* Celebration Modal */}
+      {/* Global Lightbulb Glow */}
       <AnimatePresence>
-        {celebration && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.5, opacity: 0, y: 20 }}
-              className="bg-[#1c2237] border border-white/10 p-10 rounded-[3rem] max-w-sm w-full text-center relative shadow-[0_0_50px_rgba(99,102,241,0.3)]"
-            >
-              <button 
-                onClick={() => setCelebration(null)}
-                className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-              
-              <div className="flex justify-center mb-6">
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 10, 0], scale: [1, 1.2, 1] }}
-                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
-                >
-                  {celebration.icon}
-                </motion.div>
-              </div>
-              
-              <h2 className="text-3xl font-black text-white mb-2 uppercase italic tracking-tight">
-                {celebration.title}
-              </h2>
-              <p className="text-slate-400 font-medium mb-8">
-                {celebration.subtitle}
-              </p>
-              
-              <button
-                onClick={() => setCelebration(null)}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl uppercase tracking-[0.2em] text-xs shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
-              >
-                Fortsätt resan
-              </button>
-            </motion.div>
-          </div>
+        {scores.principal.length === 11 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 pointer-events-none z-[100] bg-amber-400/5 shadow-[inset_0_0_200px_rgba(251,191,36,0.15)]"
+          />
         )}
       </AnimatePresence>
 
